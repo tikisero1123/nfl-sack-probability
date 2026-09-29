@@ -28,7 +28,7 @@ Every feature is knowable pre-snap. No play-outcome columns are used.
 
 The QB, offense, and defense priors are the model's main signal. Each is an expanding sack rate within a season, built from games strictly before the current one (`cumsum().shift(1)`), so no feature can see the play it is predicting.
 
-Small samples are shrunk toward the league rate with a Bayesian prior worth 100 pseudo-dropbacks:
+Small samples are shrunk toward the league rate with a Bayesian prior worth 100 pseudo-dropbacks. The league rate itself is computed from the training seasons only, so no test-season outcome leaks into any feature:
 
 ```
 prior_rate = (prior_sacks + 100 * league_rate) / (prior_dropbacks + 100)
@@ -41,7 +41,7 @@ Early in the season every rate starts at the league average and moves toward the
 Both models use a season-based split: train on 2021-2022 (43,106 dropbacks) and test on 2023 (21,740 dropbacks). The split is never random, so future games never inform the past. Because accuracy is meaningless at a 6% base rate, models are graded on log loss, Brier score, and calibration.
 
 1. **Logistic regression** (RobustScaler + LogisticRegression), the interpretable baseline
-2. **Gradient boosting** (HistGradientBoostingClassifier with isotonic calibration), to test whether nonlinearity and interactions help
+2. **Gradient boosting** (HistGradientBoostingClassifier with isotonic calibration, `random_state=0` for reproducibility), to test whether nonlinearity and interactions help
 
 Both are compared against a naive baseline that always predicts the training base rate.
 
@@ -50,8 +50,8 @@ Both are compared against a naive baseline that always predicts the training bas
 | Model | Log loss | Brier | ROC AUC | PR AUC |
 |---|---|---|---|---|
 | Base rate | 0.2463 | 0.0626 | 0.500 | 0.067 |
-| Logistic regression | 0.2421 | 0.0621 | 0.603 | 0.097 |
-| Gradient boosting | 0.2414 | 0.0619 | 0.606 | 0.103 |
+| Logistic regression | 0.2420 | 0.0621 | 0.603 | 0.097 |
+| Gradient boosting | 0.2412 | 0.0619 | 0.610 | 0.102 |
 
 Key findings:
 
@@ -61,7 +61,7 @@ Key findings:
 - **The quarterback matters more than any situational factor.** Career sack rates among QBs with 300+ dropbacks range from 3.2% (Brady) to 12.3% (Fields), nearly a 4x spread.
 - **Sack rate rises with down:** about 5% on first down and 9.5% on third. It peaks at 6-8 yards to go and falls as the offense's lead grows.
 
-The notebook ends with a `predict_sack()` helper that scores any pre-snap situation. For example, Brady on 3rd and 4 at midfield, up 11 in the 4th quarter, gets 5.8%. Fields in the same spot gets 10.9%. Unseen quarterbacks fall back to the league rate.
+The notebook ends with a `predict_sack()` helper that scores any pre-snap situation. For example, Brady on 3rd and 4 at midfield, up 11 in the 4th quarter, gets 5.6%. Fields in the same spot gets 11.2%. Unseen quarterbacks fall back to the league rate.
 
 ## How to run
 
