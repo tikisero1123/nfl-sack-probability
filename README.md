@@ -68,7 +68,7 @@ The notebook ends with a `predict_sack()` helper that scores any pre-snap situat
 Requires Python 3.9+.
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/tikisero1123/nfl-sack-probability.git
 cd nfl-sack-probability
 python -m venv .venv
 source .venv/bin/activate
